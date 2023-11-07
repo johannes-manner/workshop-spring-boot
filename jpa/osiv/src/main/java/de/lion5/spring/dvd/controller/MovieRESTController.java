@@ -1,7 +1,7 @@
 package de.lion5.spring.dvd.controller;
 
 import de.lion5.spring.dvd.model.Movie;
-import de.lion5.spring.dvd.repository.MovieRepository;
+import de.lion5.spring.dvd.service.MovieService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,18 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MovieRESTController {
 
-  private final MovieRepository movieRepository;
+  private final MovieService movieService;
 
   @Autowired
-  public MovieRESTController(MovieRepository movieRepository) {
-    this.movieRepository = movieRepository;
+  public MovieRESTController(MovieService movieService) {
+    this.movieService = movieService;
   }
 
   @GetMapping("/v1/movies")
   public ResponseEntity<Movie[]> getMovies() {
-    
+
     this.logInfo("Try to access the DB ");
-    List<Movie> movieList = movieRepository.findAll();
+    List<Movie> movieList = movieService.findAllWithMoreThanNActors(2);
     this.logInfo("My request to DB was executed");
 
     this.simulateABlockingCall(10_000);

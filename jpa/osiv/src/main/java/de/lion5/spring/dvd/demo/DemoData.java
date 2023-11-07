@@ -42,6 +42,7 @@ public class DemoData {
 
     // not storing the film studio directly. It is stored transitively (CASCADE.MERGE) when the first movie is stored
     FilmStudio warner = new FilmStudio(1L, "Warner Bros. Pictures", LocalDate.of(1923, 4, 4), null);
+    FilmStudio disney = new FilmStudio(2L, "Disney", LocalDate.of(1923, 4, 4), null);
 
     Actor tomHanks = new Actor(1L, "Tom Hanks", true, LocalDate.of(1956, 7, 9), null);
     Actor diCaprio = new Actor(2L, "Leonardo Di Caprio", true, LocalDate.of(1974, 11, 11), null);
@@ -54,7 +55,7 @@ public class DemoData {
         new ArrayList<>(Arrays.asList(diCaprio)), warner);
     Movie cloudAtlas = new Movie(2L, "Cloud Atlas", false, 2012,
         "https://cdn.pixabay.com/photo/2020/03/02/16/19/vintage-4896141_960_720.jpg",
-        new ArrayList<>(Arrays.asList(tomHanks)), warner);
+        new ArrayList<>(Arrays.asList(tomHanks)), disney);
 
     // Save movies
     this.movieRepo.saveAll(Arrays.asList(inception, cloudAtlas));
