@@ -20,7 +20,7 @@ public class ConcurrencyTest {
   private static AtomicInteger number = new AtomicInteger();
 
   @Test
-  public void requestMoviesEndpointTwentyTimes() {
+  public void requestMoviesEndpointNTimes() {
 
     LocalDateTime start = LocalDateTime.now();
 

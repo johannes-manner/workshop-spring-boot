@@ -40,7 +40,7 @@ public class Movie {
   // default fetch type: LAZY
 
   @JsonIgnore
-  @ManyToMany(fetch = FetchType.EAGER)
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(name = "movie_actor", joinColumns = @JoinColumn(name = "movie_id"), inverseJoinColumns = @JoinColumn(name = "actor_id"))
   private List<Actor> actors;
   // Due to merge, the film studio will be stored when it is not present in the database
