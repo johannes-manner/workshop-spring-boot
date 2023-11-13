@@ -189,7 +189,7 @@ Okay, we are somehow "blocked" for the whole request-response interaction - than
 You can solve this problem with the following:
 
 0. Move the heavy computation before the first DB access.
-   The first DB interactions keeps the connection due to OSIV.
+   The first DB interactions keeps a connection from the DB pool due to OSIV.
 1. Solution (which is not a real solution...):
    Increase the pool size via spring properties `spring.datasource.hikari.maximum-pool-size=20` in
    our artificial
@@ -524,7 +524,7 @@ Now we configured to also fetch the actors eagerly (means whenever I read the mo
 the film studio and the actors in separate queries..). Look also at the type of queries, joins over
 several tables - a performance nightmare...
 This effect is even transitively :( Could result in reading whole subtrees of the database without
-needing it, e.g. also change the association in Actor
+needing it, e.g. also change the association in Actor:
 
 ```java
   @ManyToMany(fetch = FetchType.EAGER, mappedBy = "actors", cascade = {MERGE, PERSIST})
@@ -643,7 +643,7 @@ and you get the following result - even worse:
 ```
 
 So I agree this is a functional solution, but not from a performance perspective.
-Redo the changes in `Actor` and `Movie` and also change the fetch type of the FillStudio to `LAZY`.
+Redo the changes in `Actor` and `Movie` and also change the fetch type of the FilmStudio to `LAZY`.
 
 ```java
   @JsonIgnore
@@ -737,7 +737,7 @@ Yippie - we have a working solution with only a single annotation - feels like m
 it work?
 Like the OSIV, `@Transactional` keeps the DB session (spans a transaction) after executing the first
 sql statement. So
-LAZY associated
+LAZY associated relations
 can be fetched as long as we are within this transaction context (within the method).
 Uncomment the transcation related logging in `application.properties`. You may see something similar
 like the following output:
@@ -796,3 +796,73 @@ We should be aware that we misuse transactions here to keep the db session and e
 And we still need three sql statements - Can we do better? YES WE CAN :)
 
 - The gold standard and solution - `NamedEntityGraphs`
+
+NamedEntitiyGraphs specify the data which should be loaded out of the database within a single
+sql statement. Their usage is recommended :) <br/>
+In our simple case, we always load all asociated actors when we load all images (findAll).
+Wouldn't it be nice if we could specify for this single method in our respository a way to use a
+single sql statement...
+
+You have to change `Movie` and the `MovieRepository` classes:
+
+- `Movie`: We have to configure a `NamedEntityGraph` within our model classes, where we describe
+  which other associated attributes should be fetched from the database when we use this
+  entity graph.
+
+```java
+
+@NamedEntityGraph(name = "Movie.actors",
+    attributeNodes = @NamedAttributeNode(value = "actors"))
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Movie {
+```
+
+- `MovieRepository`: Within our repository we specify which methods should use the named entity
+  graph by using the `@EntityGraph` annotation.
+
+```java
+public interface MovieRepository extends JpaRepository<Movie, Long> {
+
+  @EntityGraph(value = "Movie.actors")
+  @Override
+  public List<Movie> findAll();
+```
+
+The result when running this is:
+
+```agsl
+2023-11-13T16:14:16.946+01:00  INFO 10912 --- [nio-8080-exec-1] d.l.s.d.controller.MovieRESTController   : Try to access the DB  Thread: http-nio-8080-exec-1 Controller: de.lion5.spring.dvd.controller.MovieRESTController@cb1a375
+2023-11-13T16:14:16.950+01:00 TRACE 10912 --- [nio-8080-exec-1] o.s.t.i.TransactionInterceptor           : Getting transaction for [org.springframework.data.jpa.repository.support.SimpleJpaRepository.findAll]
+2023-11-13T16:14:17.135+01:00 DEBUG 10912 --- [nio-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        m1_0.id,
+        a1_0.movie_id,
+        a1_1.id,
+        a1_1.birthday,
+        a1_1.name,
+        a1_1.won_oscar,
+        m1_0.cover_image,
+        m1_0.film_studio_id,
+        m1_0.release_year,
+        m1_0.title,
+        m1_0.won_oscar 
+    from
+        movie m1_0 
+    left join
+        (movie_actor a1_0 
+    join
+        actor a1_1 
+            on a1_1.id=a1_0.actor_id) 
+                on m1_0.id=a1_0.movie_id
+2023-11-13T16:14:17.148+01:00 TRACE 10912 --- [nio-8080-exec-1] o.s.t.i.TransactionInterceptor           : Completing transaction for [org.springframework.data.jpa.repository.support.SimpleJpaRepository.findAll]
+2023-11-13T16:14:17.152+01:00  INFO 10912 --- [nio-8080-exec-1] d.l.s.d.controller.MovieRESTController   : My request to DB was executed Thread: http-nio-8080-exec-1 Controller: de.lion5.spring.dvd.controller.MovieRESTController@cb1a375
+```
+
+It generates a single sql statement with two left joins since we are only interested in movies and
+their associated data, not in all actors or film studios which do not have a movie at all.
+Furthermore, since we load the data within a single statement and also the associated actors,
+there is no need for lazy loading any data further with additional queries.
+This procedure reduces the load on the database and solves all other issues faced here as well :) !
