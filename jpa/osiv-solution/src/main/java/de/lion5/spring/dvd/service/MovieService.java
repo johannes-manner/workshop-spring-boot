@@ -2,7 +2,6 @@ package de.lion5.spring.dvd.service;
 
 import de.lion5.spring.dvd.model.Movie;
 import de.lion5.spring.dvd.repository.MovieRepository;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ public class MovieService {
         .collect(Collectors.toList());
   }
 
-  @Transactional
+  
   public void createFakeMovies(Integer numberOfMovies) {
     long nextId = this.movieRepository.count() + 1;
     for (int i = 0; i < numberOfMovies; i++) {
@@ -33,5 +32,9 @@ public class MovieService {
           new Movie(nextId + i, "An amazing film " + i, true, 2023,
               "https://amazing.images.com/" + i + ".png", null, null));
     }
+  }
+
+  public long countMovies() {
+    return this.movieRepository.count();
   }
 }

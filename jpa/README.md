@@ -5,4 +5,6 @@ One is the OSIV, [Transaction and NamedEnitity Playground](jpa-issues.md) where 
 training are included (osiv project).
 
 The other one is a possible solution with a configured named entity graph as well as another example
-for the influence of setting auto-commit to false (osiv-solution).
+for the influence
+of [disabling default transactions and usage of @Transactional](transaction-issues.md) (
+osiv-solution).

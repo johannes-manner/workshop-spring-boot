@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 @EnableJpaRepositories(basePackages = {"de.lion5.spring.dvd.repository"},
-    enableDefaultTransactions = false)
+    enableDefaultTransactions = true)
 public class PersistenceJPARepository {
 
 }

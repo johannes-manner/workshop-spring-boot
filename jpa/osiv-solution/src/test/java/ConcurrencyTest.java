@@ -51,8 +51,8 @@ public class ConcurrencyTest {
     RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    ResponseEntity<Integer> response = restTemplate.getForEntity(
-        "http://localhost:8080/v1/movies/gen", Integer.class);
+    ResponseEntity<Integer> response = restTemplate.postForEntity(
+        "http://localhost:8080/v1/movies/gen", 100000, Integer.class);
 
     LocalDateTime end = LocalDateTime.now();
     System.out.println("Test took: " + ChronoUnit.MILLIS.between(start, end) + " milliseconds");
