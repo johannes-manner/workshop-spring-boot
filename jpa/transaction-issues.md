@@ -29,12 +29,12 @@ Connection connection=dataSource.getConnection(); // (1)
 
 So questions (2) and (3) are already answered.
 You may ask yourself - why should I care?
-The thing is the execution of `commit()` which finally saved all changed done to the DB.
+The thing is the execution of `commit()` which finally saved all changes done to the DB.
 And this also answers question (1) since the default behavior of repository methods is to read
 consistent data, write and update data compliant to the ACID properties. So looking at
 every `read`, `save` or `update` operation in isolation, this makes totally sense.
 
-**BUT**: This results in a lot of accesses to the DB...
+**BUT**: This results in a lot of transactions and connection acquire and release operations...
 
 Ok all individual JpaRepository methods per default create their own transactional context
 and commit. So the following code results in **numberOfMovies transactions** which are committed
@@ -44,9 +44,9 @@ one after another (leading to "inconsistent" data in a sense that the batch here
   public void createFakeMovies(Integer numberOfMovies){
     long nextId=this.movieRepository.count()+1;
     for(int i=0;i<numberOfMovies; i++){
-    movieRepository.save(...);
+      movieRepository.save(...);
     }
-    }
+  }
 ```
 
 Execute the test `ConcurrencyTest.generateRandomData` with a big number of requests and
@@ -183,9 +183,9 @@ When importing `@Transactional` use the Spring dependency.
 public void createFakeMovies(Integer numberOfMovies){
     long nextId=this.movieRepository.count()+1;
     for(int i=0;i<numberOfMovies; i++){
-    movieRepository.save(...);
+      movieRepository.save(...);
     }
-    }
+  }
 ```
 
 Run the application and the test again:
