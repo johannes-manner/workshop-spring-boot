@@ -3,6 +3,7 @@
 ### Task 1 - Setup your IDE and execute the JVM with the mentioned argument
 
 Caution: OSIV is enabled by default!! Disable it as soon as possible!!
+But for this first excercise still enable it (property to true).
 
 Important when starting the JVM is to add VM parameters to turn on housekeeping of hikari at a
 regular basis to see different behavior of OSIV, Transactions etc...
@@ -658,7 +659,9 @@ private FilmStudio filmStudio;
 ```
 
 You should not be surprised - you get an exception as before, but the sql queries for the film
-studios are gone:
+studios are gone (they are not loaded lazy and we don't call `getFilmStudio` or any other method
+where the film studio is needed - therefore it is also not loaded as LAZY implies - good to remember
+in a second :):
 
 ```agsl
 2023-11-07T21:21:53.825+01:00  INFO 5720 --- [nio-8080-exec-1] d.l.s.d.controller.MovieRESTController   : Try to access the DB  Thread: http-nio-8080-exec-1 Controller: de.lion5.spring.dvd.controller.MovieRESTController@213368be
