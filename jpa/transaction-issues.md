@@ -248,12 +248,56 @@ The last thing you can try is to have the `enableDefaultTransactions` set to `tr
 The transaction context of the `createFakeMovies` is reused for the (I want to call it) child `save`
 operations.
 
-Performance-wise is the batch operating case a lot faster (already for the in memory test
-database `h2`). Further tests are necessary to strengthen these results for e.g. a postgres instance
-running on a different machine.
+This has an impact when the transaction is committed and flushed!
+Performance-wise, you only use a single flush and save the overhead of many (in our case 10)
+transaction overheads.
+This can be seen when enabling the
+`spring.jpa.properties.hibernate.generate_statistics=true` property.
+The output you see is the following:
+
+```agsl
+2023-11-22T18:05:14.625+01:00  INFO 13340 --- [nio-8080-exec-1] i.StatisticalLoggingSessionEventListener : Session Metrics {
+    47300 nanoseconds spent acquiring 1 JDBC connections;
+    0 nanoseconds spent releasing 0 JDBC connections;
+    391800 nanoseconds spent preparing 10 JDBC statements;
+    2463800 nanoseconds spent executing 10 JDBC statements;
+    0 nanoseconds spent executing 0 JDBC batches;
+    0 nanoseconds spent performing 0 L2C puts;
+    0 nanoseconds spent performing 0 L2C hits;
+    0 nanoseconds spent performing 0 L2C misses;
+    11649700 nanoseconds spent executing 1 flushes (flushing a total of 10 entities and 0 collections);
+    0 nanoseconds spent executing 0 partial-flushes (flushing a total of 0 entities and 0 collections)
+}
+```
+
+So we see that hibernate prepares 10 statement (the preparation of statements is also dependent on
+the provider - not further discussed here), but we focus on the 10 executed statements.
+Not batch processing we would like to see, so we have to make another configuration.
+`spring.jpa.properties.hibernate.jdbc.batch_size=5` is to tell Hibernate to make batches of 5.
+The output when enabling this in the `application.properties` is as follows:
+
+```agsl
+2023-11-22T18:11:00.092+01:00  INFO 8212 --- [nio-8080-exec-1] i.StatisticalLoggingSessionEventListener : Session Metrics {
+    31300 nanoseconds spent acquiring 1 JDBC connections;
+    0 nanoseconds spent releasing 0 JDBC connections;
+    50500 nanoseconds spent preparing 1 JDBC statements;
+    0 nanoseconds spent executing 0 JDBC statements;
+    2151100 nanoseconds spent executing 2 JDBC batches;
+    0 nanoseconds spent performing 0 L2C puts;
+    0 nanoseconds spent performing 0 L2C hits;
+    0 nanoseconds spent performing 0 L2C misses;
+    12111000 nanoseconds spent executing 1 flushes (flushing a total of 10 entities and 0 collections);
+    0 nanoseconds spent executing 0 partial-flushes (flushing a total of 0 entities and 0 collections)
+}
+```
+
+We now see that 1 statement is prepared (as said dependent on the provider) and what is important
+for us 2 batches are executed within a single flush where 10 entities are written to the db.
 
 ### Summary
 
 Per default, each JpaRepository method starts its own, isolated transaction for every operation.
-This can lead to inconsistent batch operations or inconsistencies when reading and updating data
-within a single method. A recommendation is to disable this behavior as shown.
+This can lead to inconsistent operations or inconsistencies when reading and updating data
+within a single method. A recommendation is to disable this behavior as shown and use proper
+transaction context. Additionally, when you want to perform batch processing, you have to specify
+this!

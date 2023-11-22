@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -33,6 +35,7 @@ import lombok.NoArgsConstructor;
 public class Movie {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   private Long id;
   @NotNull(message = "Title must be set")
   @NotEmpty(message = "Title not there")
@@ -54,4 +57,14 @@ public class Movie {
 
   @ManyToOne(cascade = CascadeType.MERGE) // default fetch type: EAGER
   private FilmStudio filmStudio;
+
+  public Movie(String title, boolean wonOscar, int releaseYear, String coverImage,
+      List<Actor> actors, FilmStudio filmStudio) {
+    this.title = title;
+    this.wonOscar = wonOscar;
+    this.releaseYear = releaseYear;
+    this.coverImage = coverImage;
+    this.actors = actors;
+    this.filmStudio = filmStudio;
+  }
 }

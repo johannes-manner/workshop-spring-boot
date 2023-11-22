@@ -52,10 +52,10 @@ public class DemoData {
     // saving two actors
     this.actorRepo.saveAll(Arrays.asList(tomHanks, diCaprio));
 
-    Movie inception = new Movie(1L, "Inception", false, 2010,
+    Movie inception = new Movie("Inception", false, 2010,
         "https://cdn.pixabay.com/photo/2017/05/15/17/43/calm-2315559_960_720.jpg",
         new ArrayList<>(Arrays.asList(diCaprio)), warner);
-    Movie cloudAtlas = new Movie(2L, "Cloud Atlas", false, 2012,
+    Movie cloudAtlas = new Movie("Cloud Atlas", false, 2012,
         "https://cdn.pixabay.com/photo/2020/03/02/16/19/vintage-4896141_960_720.jpg",
         new ArrayList<>(Arrays.asList(tomHanks)), disney);
 

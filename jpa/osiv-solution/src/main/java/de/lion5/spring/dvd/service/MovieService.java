@@ -24,12 +24,11 @@ public class MovieService {
         .collect(Collectors.toList());
   }
 
-  
+
   public void createFakeMovies(Integer numberOfMovies) {
-    long nextId = this.movieRepository.count() + 1;
     for (int i = 0; i < numberOfMovies; i++) {
       movieRepository.save(
-          new Movie(nextId + i, "An amazing film " + i, true, 2023,
+          new Movie("An amazing film " + i, true, 2023,
               "https://amazing.images.com/" + i + ".png", null, null));
     }
   }

@@ -875,3 +875,12 @@ their associated data, not in all actors or film studios which do not have a mov
 Furthermore, since we load the data within a single statement and also the associated actors,
 there is no need for lazy loading any data further with additional queries.
 This procedure reduces the load on the database and solves all other issues faced here as well :) !
+
+#### Other issues which comes from the domain model
+
+`MultipleBagFetchException` where the problem is the cartesian product when fetching two lists.
+Then you have a lot of duplicats for inidividual objects like in our example when the our Actors
+would have another `List<FilmStudio>` where they were already employed.
+Infos and a possible solution are present at [Baeldung`s site](
+https://www.baeldung.com/java-hibernate-multiplebagfetchexception
+).
